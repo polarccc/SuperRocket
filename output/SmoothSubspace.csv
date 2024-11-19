@@ -1,0 +1,2 @@
+timestamp,itr,classifier,num_kernels,num_features,k,lr_weight,lr_beta,lr_gamma,dataset,physical_cores,train_duration,test_duration,test_assembly_duration,predict_accuracy,epoch,itr,logical_cores,max_freq,min_freq,memory
+2024-11-19 07:43:33,200,0j,100000,400000,50000,100,0.01,0.01,SmoothSubspace,48,193.76817052427214,6.0240038729971275,0.2767313360236585,0.9666666666666667,200,200,96,3900.0,1000.0,270.0
