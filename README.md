@@ -1,4 +1,4 @@
-# SuperRocket
+# SuperRocket: On Efficient Selection of Kernel-based Transfornations for Fast and Accurate Time Series Classification
 
 ## Requirements
 * numba == 0.50.1
