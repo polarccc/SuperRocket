@@ -5,7 +5,7 @@
 * numpy == 1.18.5
 * pandas == 1.0.5
 * scikit_learn >= 0.23.1
-* sktime == 0.1.3
+* sktime == 0.4.3
 * torch==1.11.0+cu113
   
 Also you can just follow the steps below to install environment dependencies.
@@ -49,7 +49,7 @@ args = \
         "lr_weight": 100,
         "lr_beta": 0.01,
         "lr_gamma": 0.01,
-        "minibatch_size": 32,
+        "minibatch_size": 256,
 
         ...
     }

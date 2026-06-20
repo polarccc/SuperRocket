@@ -88,12 +88,12 @@ def NN_extended2NN_array(NN_extended, dilations, num_kernels=84):
 
 def get_NN(num_features=10000, num_dilations=32, selected_kernel_index_int=100000000000,
            selected_dilation_index_int=10000):
-    print("get_NN :", "num_features=", num_features)
+    # print("get_NN :", "num_features=", num_features)
     import numpy as np
     selected_kernel_index = index_int2array(selected_kernel_index_int)
     selected_dilation_index = index_int2array(selected_dilation_index_int)
-    print("selected_kernel_index", selected_kernel_index)
-    print("selected_dilation_index", selected_dilation_index)
+    # print("selected_kernel_index", selected_kernel_index)
+    # print("selected_dilation_index", selected_dilation_index)
 
     NN = np.random.randint(low=0, high=1000, size=num_dilations * 84)
     for i in selected_kernel_index:

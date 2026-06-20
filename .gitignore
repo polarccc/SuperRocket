@@ -1,0 +1,7 @@
+*.pyc
+*.nbi
+*.nbc
+data/*
+__pycache__/*
+runs/*
+*.csv

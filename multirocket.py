@@ -484,19 +484,19 @@ class MultiRocket:
         x_train_transform = np.nan_to_num(x_train_transform)
 
         elapsed_time = time.perf_counter() - start_time
-        if self.verbose > 1:
-            print('[{}] Kernels applied!, took {}s'.format(self.name, elapsed_time))
-            print('[{}] Transformed Shape {}'.format(self.name, x_train_transform.shape))
+        # if self.verbose > 1:
+        #     print('[{}] Kernels applied!, took {}s'.format(self.name, elapsed_time))
+        #     print('[{}] Transformed Shape {}'.format(self.name, x_train_transform.shape))
 
-        if self.verbose > 1:
-            print('[{}] Training'.format(self.name))
+        # if self.verbose > 1:
+        #     print('[{}] Training'.format(self.name))
 
         _start_time = time.perf_counter()
         self.classifier.fit(x_train_transform, y_train)
         self.train_duration = time.perf_counter() - _start_time
 
-        if self.verbose > 1:
-            print('[{}] Training done!, took {:.3f}s'.format(self.name, self.train_duration))
+        # if self.verbose > 1:
+        #     print('[{}] Training done!, took {:.3f}s'.format(self.name, self.train_duration))
         if predict_on_train:
             yhat = self.classifier.predict(x_train_transform)
         else:
@@ -505,8 +505,8 @@ class MultiRocket:
         return yhat
 
     def predict(self, x):
-        if self.verbose > 1:
-            print('[{}] Predicting'.format(self.name))
+        # if self.verbose > 1:
+        #     print('[{}] Predicting'.format(self.name))
 
         self.apply_kernel_on_test_duration = 0
         self.test_transforms_duration = 0
@@ -525,13 +525,15 @@ class MultiRocket:
 
         x_transform = np.nan_to_num(x_transform)
         if self.verbose > 1:
-            print('Kernels applied!, took {:.3f}s. Transformed shape: {}.'.format(self.apply_kernel_on_test_duration,
-                                                                                  x_transform.shape))
+            # print('Kernels applied!, took {:.3f}s. Transformed shape: {}.'.format(self.apply_kernel_on_test_duration,
+            #                                                                       x_transform.shape))
+            pass
 
         start_time = time.perf_counter()
         yhat = self.classifier.predict(x_transform)
         self.test_duration = time.perf_counter() - start_time
         if self.verbose > 1:
-            print("[{}] Predicting completed, took {:.3f}s".format(self.name, self.test_duration))
+            # print("[{}] Predicting completed, took {:.3f}s".format(self.name, self.test_duration))
+            pass
 
         return yhat

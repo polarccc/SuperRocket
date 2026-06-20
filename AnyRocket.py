@@ -41,8 +41,8 @@ class MiniRocket(_PanelToTabularTransformer):
     def fit(self, X, y=None, max_dilations_per_kernel=32, seed=None,
             selected_kernel_index_int=17576888821917879161389045, selected_dilation_index_int=0, specificed_NN=0,
             NN=[0]):
-        print("X =============")
-        print(X)
+        # print("X =============")
+        # print(X)
         X = check_X(X, enforce_univariate=True, coerce_to_numpy=True).astype(np.float32)
         *_, n_timepoints = X.shape
         if n_timepoints < 9:
@@ -64,7 +64,7 @@ class MiniRocket(_PanelToTabularTransformer):
 
         self.check_is_fitted()
         X = check_X(X, coerce_to_numpy=True).astype(np.float32)
-        print("X_shape=", X.shape)
+        # print("X_shape=", X.shape)
 
         prev_threads = get_num_threads()
         if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
@@ -72,9 +72,8 @@ class MiniRocket(_PanelToTabularTransformer):
         else:
             n_jobs = self.n_jobs
         set_num_threads(n_jobs)
-        set_num_threads(prev_threads)
-
         X_ = _transform_multi(X, tuple(self.named_parameters.values()))
+        set_num_threads(prev_threads)
         return pd.DataFrame(X_[0]), X_[1]
 
 
@@ -435,8 +434,8 @@ def _fit_biases_multi(
 
 def _fit_dilations(n_timepoints, num_features, max_dilations_per_kernel):
     num_kernels = 84
-    print("num_features")
-    print(num_features)
+    # print("num_features")
+    # print(num_features)
     num_features_per_kernel = num_features // num_kernels
     true_max_dilations_per_kernel = min(
         num_features_per_kernel, max_dilations_per_kernel
@@ -478,8 +477,8 @@ def _fit_dilations(n_timepoints, num_features, max_dilations_per_kernel):
             else:
                 NN[j * 84 + i] = NN[j * 84 + i] + 1
                 Rest = Rest - 1
-    print(NN)
-    print(sum(NN))
+    # print(NN)
+    # print(sum(NN))
 
     return dilations, NN
 

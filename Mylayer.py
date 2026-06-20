@@ -53,12 +53,12 @@ class total_loss_fn(torch.autograd.Function):
         mid_2 = torch.tensor(10) * mid_1
         mid_3 = grad_Loss_val_alpha - mid_2
         mid_appendix = 10 * (1 / gamma.mul(gamma))
-        print("mid+appendix=")
-        print(mid_appendix.size)
-        print(mid_appendix)
+        # print("mid+appendix=")
+        # print(mid_appendix.size)
+        # print(mid_appendix)
         grad_alpha = mid_3 + beta + mid_appendix  #10=args[lamda]
         grad_gamma = grad_alpha * grad_alpha_gamma
 
-        print("-----------------grad_gamma--------------------")
-        print(grad_gamma)
+        # print("-----------------grad_gamma--------------------")
+        # print(grad_gamma)
         return grad_gamma, grad_alpha, grad_Loss_val_alpha, grad_Loss_val_weight, mid, grad_alpha_gamma, beta

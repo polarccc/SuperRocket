@@ -36,7 +36,7 @@ def predict(best_model):
 
     _predictions = _predictions.cpu().numpy()
     predictions.append(_predictions)
-    print(predictions)
+    # print(predictions)
     total += len(X_test_transform)
     correct += (_predictions == y_test).sum()
     #return np.concatenate(predictions), correct / total
@@ -49,49 +49,88 @@ from sklearn.pipeline import make_pipeline
 
 
 def predict_plus(args, best_model, feature_para_dict, data):
-    test_assembly_duration = 0
-    test_duration = 0
+    test_transform_time = 0
+    test_core_duration = 0
+    train_classifier_time= 0
+    rocket_fit_time = 0
+    feature_selection_time = 0
 
     X, y, X_train, y_train, X_val, y_val, X_test, y_test, X_train_val, y_train_val = data
 
-    predictions = []
-    correct = 0
-    total = 0
+    # rocket = MiniRocket(num_kernels=args["num_kernels"])  # by default, ROCKET uses 10,000 kernels
+    # rocket.fit(X)
+    # dilations = rocket.named_parameters["dilations"]
+    # para_1 = list(best_model[0].named_parameters())
+    # alpha = para_1[1][1].data
+    # indexs = alpha.sort()[1].tolist()[int(-args["k"]):]
+    # feature_k_para = list([])
+    #
+    # for item in indexs:
+    #     feature_k_para.append(feature_para_dict[item])
+    # para = convert_to_paras(num_dilation=int(dilations.size), feature_para_dict=feature_k_para)
+    #
+    # rocket.named_parameters["NN"] = para["NN"]
+    # rocket.named_parameters["biases"] = para["bias"]
+    # print("===============P1   NN.sum==============")
+    # print(para["NN"].sum())
+    #
+    # test_assembly_duration += time.perf_counter() - _start_time
+    #
+    # _start_time = time.perf_counter()
+    # X_test_transform, feature_para_dict = rocket.transform(X=X_test)
+    # X_train_transform, feature_para_dict = rocket.transform(X=X_train)
+    # X_train_val_transform, feature_para_dict = rocket.transform(X=X_train_val)
+    # X_testing = torch.tensor(np.array(X_test_transform), requires_grad=True)
 
     _start_time = time.perf_counter()
-    rocket = MiniRocket(num_kernels=args["num_kernels"])  # by default, ROCKET uses 10,000 kernels
-    rocket.fit(X)
-    dilations = rocket.named_parameters["dilations"]
+    # vectorized version of feature selection
     para_1 = list(best_model[0].named_parameters())
     alpha = para_1[1][1].data
-    indexs = alpha.sort()[1].tolist()[int(-args["k"]):]
-    feature_k_para = list([])
+    _, indexs = torch.sort(alpha, descending=True)
+    selected_indices = indexs[:int(args["k"])]  # get top-k indices of alpha
 
-    for item in indexs:
-        feature_k_para.append(feature_para_dict[item])
-    para = convert_to_paras(num_dilation=int(dilations.size), feature_para_dict=feature_k_para)
-
-    rocket.named_parameters["NN"] = para["NN"]
-    rocket.named_parameters["biases"] = para["bias"]
-    print("===============P1   NN.sum==============")
-    print(para["NN"].sum())
-
-    test_assembly_duration += time.perf_counter() - _start_time
+    # get feature_k_para from feature_para_dict
+    if isinstance(feature_para_dict, list):
+        feature_k_para = [feature_para_dict[i.item()] for i in selected_indices]
+    else:
+        feature_k_para = feature_para_dict[selected_indices.cpu().numpy()]
+    feature_selection_time = time.perf_counter() - _start_time
 
     _start_time = time.perf_counter()
-    X_test_transform, feature_para_dict = rocket.transform(X=X_test)
-    X_train_transform, feature_para_dict = rocket.transform(X=X_train)
-    X_train_val_transform, feature_para_dict = rocket.transform(X=X_train_val)
-    X_testing = torch.tensor(np.array(X_test_transform), requires_grad=True)
+    rocket = MiniRocket(num_kernels=args["num_kernels"])
+    rocket.fit(X)
+    rocket_fit_time = time.perf_counter() - _start_time
+    dilations = rocket.named_parameters["dilations"]
 
+    para = convert_to_paras(num_dilation=int(dilations.size), feature_para_dict=feature_k_para)
+    rocket.named_parameters["NN"] = para["NN"]
+    rocket.named_parameters["biases"] = para["bias"]
+
+    _start_time = time.perf_counter()
+    X_test_transform, _ = rocket.transform(X=X_test)
+    test_transform_time = time.perf_counter() - _start_time
+
+    _start_time = time.perf_counter()
+    X_train_val_transform, _ = rocket.transform(X=X_train_val)
+    train_transform_time = time.perf_counter() - _start_time
+
+    _start_time = time.perf_counter()
     classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
     classifier.fit(X_train_val_transform, y_train_val)
+    train_classifier_time = time.perf_counter() - _start_time
+
+    _start_time = time.perf_counter()
     a = classifier.score(X_test_transform, y_test)
-    test_duration += time.perf_counter() - _start_time
+    test_core_duration = time.perf_counter() - _start_time
 
     result = {"predict_accuracy": a,
-              "test_assembly_duration": test_assembly_duration,
-              "test_duration": test_duration,
+              "test_transform_time": test_transform_time,
+              "test_core_duration": test_core_duration,
+              "train_classifier_time": train_classifier_time,
+              "train_transform_time": train_transform_time,
+              "rocket_fit_time": rocket_fit_time,
+              "feature_selection_time": feature_selection_time,
+              "rocket": rocket,
               }
 
     return result
@@ -118,14 +157,14 @@ def predict_2plus(args, best_model, feature_para_dict, data):
     X_testing = torch.tensor(np.array(X_test_transform), requires_grad=True)
 
     para_1[1][1].data = now_alpha
-    print("=============new alpha============")
-    print(now_alpha)
+    # print("=============new alpha============")
+    # print(now_alpha)
 
     _predictions = best_model(X_testing).argmax(1).cpu().numpy()
     para_1[1][1].data = pre_alpha
 
     predictions.append(_predictions)
-    print(predictions)
+    # print(predictions)
     total += len(X_test_transform)
     correct += (_predictions == y_test).sum()
 
@@ -135,26 +174,26 @@ def predict_2plus(args, best_model, feature_para_dict, data):
 def convert_to_paras(num_dilation, feature_para_dict):
     feature_para_dict = pd.DataFrame(feature_para_dict)
     feature_para_dict
-    print("num_dilation")
-    print(num_dilation)
+    # print("num_dilation")
+    # print(num_dilation)
     kernel_ = feature_para_dict.iloc[:, :-1].copy()
     kernel = kernel_.drop_duplicates(subset=[0, 1, 2], keep='first')
 
     bias = kernel.iloc[:, -1].copy()
     bias = np.array(bias, dtype=np.float32)
-    print("bias")
-    print(bias)
+    # print("bias")
+    # print(bias)
 
     NN_ = kernel.copy()
     NN_.iloc[:, 0] = NN_.iloc[:, 0] * 84 + NN_.iloc[:, 1].copy()
     NN__ = NN_.iloc[:, 0].copy()
     ans = NN__.value_counts()
-    print("ans")
-    print(ans)
+    # print("ans")
+    # print(ans)
     NN = np.zeros(84 * num_dilation, dtype=np.int32)
     #print(ans.size)
-    print("NN.size")
-    print(NN.size)
+    # print("NN.size")
+    # print(NN.size)
 
     for item in ans.index:
         NN[int(item)] = int(ans[item])
